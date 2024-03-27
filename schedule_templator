@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""Load a conference.json and use the info to template some files"""
+#
+
+import argparse
+import datetime
+import json
+import pprint
+import urllib.request
+
+
+def safename(s):
+    """Given a string, make it safe to use as a short filename"""
+    s = s.split(" ")[0].lower()
+
+    # TODO:
+    # remove bad chars
+    return s
+
+
+class Schedule:
+    def __init__(self, url):
+        text = urllib.request.urlopen(url).read()
+        data = json.loads(text)
+        self.data = data["schedule"]
+
+    def rooms(self):
+        """Return the set of unique room names"""
+        rooms = set()
+        for event in self.data:
+            # When there are multiple rooms, "room" is the string join of them
+            # if "room" in event:
+            #     rooms.add(event["room"])
+            if "rooms" in event:
+                rooms.update(event["rooms"])
+        return rooms
+
+    def rooms_safename(self):
+        """Mutate the names so that they are short and simple"""
+        rooms = set()
+        for name in self.rooms():
+            rooms.add(safename(name))
+        return rooms
+
+    def room(self, name):
+        """Return only the events in the named room"""
+        name = safename(name)
+        events = []
+        for event in self.data:
+            if "rooms" not in event:
+                continue
+            for room in event["rooms"]:
+                room_name = safename(room)
+                if name == room_name:
+                    events.append(event)
+                    continue
+        return events
+
+
+def subp_rooms(args, schedule):
+    """Show the list of all rooms"""
+    if args.raw:
+        rooms = schedule.rooms()
+    else:
+        rooms = schedule.rooms_safename()
+
+    for room in rooms:
+        print(room)
+
+
+def subp_room(args, schedule):
+    """Show the events in the named room"""
+    events = schedule.room(args.roomname)
+    pprint.pp(events)
+
+
+def subp_next(args, schedule):
+    """Show the next event for the named room"""
+    # TODO: this should just be a pretty printer for a class function
+    now = args.time
+    if now is None:
+        now = datetime.datetime.now().isoformat(timespec="seconds")
+
+    found = None
+    events = schedule.room(args.roomname)
+    for event in events:
+        if "cancelled" in event and event["cancelled"]:
+            # Skip cancelled events
+            continue
+        if event["start"] < now:
+            # already started
+            continue
+        if found is None:
+            # First matching
+            found = event
+            continue
+        if event["start"] < found["start"]:
+            # Better match
+            found = event
+            continue
+
+    pprint.pp(found)
+
+
+def argparser():
+    args = argparse.ArgumentParser(description=__doc__)
+    args.add_argument(
+        "--json",
+        help="The conference.json url (could be a file: url)",
+        default="https://2024.everythingopen.au/schedule/conference.json",
+    )
+    subp = args.add_subparsers(help="Action", required=True)
+
+    rooms = subp.add_parser("rooms", help=subp_rooms.__doc__)
+    rooms.set_defaults(func=subp_rooms)
+    rooms.add_argument(
+        "--raw",
+        help="Show the raw name, instead of the safe/short/simple name",
+        default=False,
+        action="store_true",
+    )
+
+    room = subp.add_parser("room", help=subp_room.__doc__)
+    room.set_defaults(func=subp_room)
+    room.add_argument(
+        "roomname",
+        help="The room name to search for",
+    )
+
+    next = subp.add_parser("next", help=subp_next.__doc__)
+    next.set_defaults(func=subp_next)
+    next.add_argument(
+        "--time",
+        help="Force a time to be used as now (YYYY-MM-DDTHH:mm:SS)",
+        default=None,
+    )
+    next.add_argument(
+        "roomname",
+        help="The room name to search for",
+    )
+
+    # TODO:
+    # - template a file using a matching event
+
+    r = args.parse_args()
+    return r
+
+
+def main():
+    args = argparser()
+
+    schedule = Schedule(args.json)
+
+    args.func(args, schedule)
+
+
+if __name__ == "__main__":
+    main()
