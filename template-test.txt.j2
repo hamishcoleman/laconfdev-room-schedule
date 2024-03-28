@@ -1,0 +1,19 @@
+{# Simple template, showing some of the possiblities #}
+
+In this room: {{ room }} (codename: {{ codename }})
+
+Now:
+{{ now[codename] }}
+(start: {{ now[codename].data["start"] }})
+
+Next:
+{{ next[codename] }}
+
+
+Also up next:
+{%   for otherroom in next.keys() | sort
+%}{%  if otherroom != codename
+%}{{   otherroom }}:
+{{     next[otherroom] }}
+{%   endif
+%}{% endfor %}
