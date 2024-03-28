@@ -19,11 +19,15 @@ def safename(s):
     return s
 
 
+def test_safename():
+    assert safename("One Two") == "one"
+
+
 class Event:
     """Represent just one event from the conference"""
     def __init__(self, data):
         # quickly validate the data
-        for i in ["start", "end", "name"]:
+        for i in ["start", "end", "name", "kind"]:
             if i not in data:
                 raise ValueError(f"Missing field {i}")
         self.data = data
@@ -95,6 +99,26 @@ class Event:
     def is_cancelled(self):
         """Is this event still going to happen?"""
         return self.data.get("cancelled", False)
+
+    # TODO: add start/end time formatting functions
+
+
+def test_event1():
+    e = Event({
+        "start": "2000-01-01T01:00:00",
+        "end": "2000-01-01T02:00:00",
+        "name": "A Test Event",
+        "kind": "talk",
+        "rooms": ["The Room"],
+        "authors": [
+            {
+                "name": "Author Name",
+            },
+        ],
+    })
+
+    assert str(e) == "2000-01-01T01:00:00 - 2000-01-01T02:00:00  A Test Event (Author Name)"  # noqa
+    assert e.is_in_room("the")
 
 
 class Schedule:
@@ -193,6 +217,103 @@ class Schedule:
                 # but only if the input data has overlapping events
                 results[roomname] = e
         return results
+
+
+test_schedule1_data = """data:,
+    {"schedule": [
+        {
+            "rooms": ["Larry (Stooge)"],
+            "start": "2000-01-01T01:00:00",
+            "end": "2000-01-01T02:00:00",
+            "name": "talk1",
+            "kind": "talk",
+            "authors": [
+                {
+                    "name": "Author1"
+                }
+            ],
+            "abstract": "This is talk1"
+        },
+        {
+            "rooms": ["Moe (Stooge)"],
+            "start": "2000-01-01T01:00:00",
+            "end": "2000-01-01T02:00:00",
+            "name": "talk2",
+            "kind": "talk",
+            "authors": [
+                {
+                    "name": "Author2"
+                }
+            ],
+            "abstract": "This is talk2"
+        },
+        {
+            "rooms": ["Larry (Stooge)", "Moe (Stooge)"],
+            "start": "2000-01-01T02:00:00",
+            "end": "2000-01-01T03:00:00",
+            "name": "Slot",
+            "kind": "Room Changeover"
+        },
+        {
+            "rooms": ["Larry (Stooge)"],
+            "start": "2000-01-01T03:00:00",
+            "end": "2000-01-01T04:00:00",
+            "name": "talk3",
+            "kind": "talk",
+            "authors": [
+                {
+                    "name": "Author3"
+                }
+            ],
+            "abstract": "This is talk3"
+        },
+        {
+            "rooms": ["Moe (Stooge)"],
+            "start": "2000-01-01T03:00:00",
+            "end": "2000-01-01T04:00:00",
+            "name": "talk4",
+            "kind": "talk",
+            "authors": [
+                {
+                    "name": "Author4"
+                }
+            ],
+            "abstract": "This is talk4"
+        }
+    ]}"""
+
+
+def test_schedule1():
+    s = Schedule(test_schedule1_data)
+
+    expect = set()
+    expect.add("Larry (Stooge)")
+    expect.add("Moe (Stooge)")
+    assert s.rooms() == expect
+
+    expect = set()
+    expect.add("larry")
+    expect.add("moe")
+    assert s.rooms_safename() == expect
+
+    assert len(s.room_events("Moe")) == 2
+    # TODO: confirm which two events..
+
+    time = "2000-01-01T02:50:00"
+
+    next = s.next(time)
+    assert sorted(next.keys()) == ["larry", "moe"]
+    expect = "2000-01-01T03:00:00 - 2000-01-01T04:00:00  talk3 (Author3)"
+    assert str(next["larry"]) == expect
+    expect = "2000-01-01T03:00:00 - 2000-01-01T04:00:00  talk4 (Author4)"
+    assert str(next["moe"]) == expect
+
+    now = s.now(time)
+    assert sorted(now.keys()) == ["larry", "moe"]
+
+    expect = "2000-01-01T02:00:00 - 2000-01-01T03:00:00  Room Changeover"
+    assert str(now["larry"]) == expect
+    assert str(now["moe"]) == expect
 
 
 def subp_kinds(args, schedule):
