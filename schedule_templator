@@ -91,6 +91,18 @@ class Schedule:
         return events
 
 
+def subp_kinds(args, schedule):
+    """Show the unique set of event kinds"""
+    # TODO: this should just be a pretty printer for a class function
+    kinds = set()
+    for event in schedule.data:
+        e = Event(event)
+        kinds.add(e.data["kind"])
+
+    for kind in kinds:
+        print(kind)
+
+
 def subp_rooms(args, schedule):
     """Show the list of all rooms"""
     if args.raw:
@@ -153,6 +165,9 @@ def argparser():
         action="store_true",
     )
     subp = args.add_subparsers(help="Action", required=True)
+
+    kinds = subp.add_parser("kinds", help=subp_kinds.__doc__)
+    kinds.set_defaults(func=subp_kinds)
 
     rooms = subp.add_parser("rooms", help=subp_rooms.__doc__)
     rooms.set_defaults(func=subp_rooms)
