@@ -121,6 +121,38 @@ class Schedule:
                 events.append(e)
         return events
 
+    def next(self, now=None):
+        """Return a dictionary of rooms and their next event"""
+        if now is None:
+            now = datetime.datetime.now().isoformat(timespec="seconds")
+
+        results = {}
+        for event in self.data:
+            e = Event(event)
+            if not e.is_content():
+                # dont care about meta
+                continue
+
+            # if e.is_cancelled():
+            #    # dont show cancelled events
+            #    continue
+
+            if e.data["start"] < now:
+                # skip anything that is already started
+                continue
+
+            for room in e.data["rooms"]:
+                roomname = safename(room)
+                if roomname not in results:
+                    results[roomname] = e
+                    continue
+
+                if e.data["start"] < results[roomname].data["start"]:
+                    # Better match
+                    results[roomname] = e
+                    continue
+        return results
+
 
 def subp_kinds(args, schedule):
     """Show the unique set of event kinds"""
@@ -158,30 +190,15 @@ def subp_room(args, schedule):
 
 def subp_next(args, schedule):
     """Show the next event for the named room"""
-    # TODO: this should just be a pretty printer for a class function
-    now = args.time
-    if now is None:
-        now = datetime.datetime.now().isoformat(timespec="seconds")
+    events = schedule.next(args.time)
 
-    found = None
-    events = schedule.room(args.roomname)
-    for event in events:
-        if "cancelled" in event and event["cancelled"]:
-            # Skip cancelled events
-            continue
-        if event["start"] < now:
-            # already started
-            continue
-        if found is None:
-            # First matching
-            found = event
-            continue
-        if event["start"] < found["start"]:
-            # Better match
-            found = event
-            continue
+    if args.raw:
+        pprint.pp(events)
+        return
 
-    pprint.pp(found)
+    # args.roomname
+    room = events.get(args.roomname, None)
+    print(room)
 
 
 def argparser():
