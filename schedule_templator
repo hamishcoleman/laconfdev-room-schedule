@@ -150,9 +150,10 @@ def subp_room(args, schedule):
     events = schedule.room_events(args.roomname)
     if args.raw:
         pprint.pp(events)
-    else:
-        for event in events:
-            print(event)
+        return
+
+    for event in events:
+        print(event)
 
 
 def subp_next(args, schedule):
