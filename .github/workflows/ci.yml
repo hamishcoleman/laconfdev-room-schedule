@@ -1,0 +1,48 @@
+---
+name: CI
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoketest:
+    name: Smoke test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fix Checkout
+        run: |
+          git fetch --force --tags
+
+      - name: Install Dependancies
+        run: |
+          sudo make build_dep
+
+      - name: Run minimal test set
+        run: |
+          make test
+
+  pages:
+    name: Upload example pages
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create pages
+        run: |
+          make next
+          mkdir pages
+          mv *.html pages
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages
+          folder: pages
+          single-commit: true
