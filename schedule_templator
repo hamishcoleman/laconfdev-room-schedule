@@ -62,6 +62,7 @@ class Event:
         """Is this event an actual talk, or something meta"""
         if self.data["kind"] not in ["talk", "tutorial"]:
             return False
+        return True
 
     def is_cancelled(self):
         """Is this event still going to happen?"""
