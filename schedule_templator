@@ -153,6 +153,33 @@ class Schedule:
                     continue
         return results
 
+    def now(self, now=None):
+        """Return a dictionary of rooms and their current event"""
+        if now is None:
+            now = datetime.datetime.now().isoformat(timespec="seconds")
+
+        results = {}
+        for event in self.data:
+            e = Event(event)
+
+            # Dont filter on content kind or anything else, since
+            # if the room is empty or chaos, we still want to know
+
+            if e.data["end"] <= now:
+                # skip anything that is already ended
+                continue
+            if e.data["start"] > now:
+                # skip anything that is has not started
+                continue
+
+            for room in e.data["rooms"]:
+                roomname = safename(room)
+
+                # This gives us the "last matched" instead of a best match
+                # but only if the input data has overlapping events
+                results[roomname] = e
+        return results
+
 
 def subp_kinds(args, schedule):
     """Show the unique set of event kinds"""
@@ -206,6 +233,24 @@ def subp_next(args, schedule):
     print(event)
 
 
+def subp_now(args, schedule):
+    """Show the current event for the named room"""
+    events = schedule.now(args.time)
+
+    if args.raw:
+        pprint.pp(events)
+        return
+
+    if args.roomname == "ALL":
+        for room in sorted(events.keys()):
+            print("Room", room)
+            print(events[room])
+        return
+
+    event = events.get(args.roomname, None)
+    print(event)
+
+
 def argparser():
     args = argparse.ArgumentParser(description=__doc__)
     args.add_argument(
@@ -242,6 +287,18 @@ def argparser():
         default=None,
     )
     next.add_argument(
+        "roomname",
+        help="The room name to search for (or ALL)",
+    )
+
+    now = subp.add_parser("now", help=subp_now.__doc__)
+    now.set_defaults(func=subp_now)
+    now.add_argument(
+        "--time",
+        help="Force a time to be used as now (YYYY-MM-DDTHH:mm:SS)",
+        default=None,
+    )
+    now.add_argument(
         "roomname",
         help="The room name to search for",
     )
