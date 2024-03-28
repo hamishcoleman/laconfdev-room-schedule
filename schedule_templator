@@ -35,6 +35,10 @@ class Event:
         end = self.data["end"]
         name = self.data["name"]
         speaker0 = self.author_name()
+
+        if self.is_cancelled():
+            return f"{start} - {end}  CANCELLED: {name}"
+
         return f"{start} - {end}  {name} ({speaker0})"
 
     def author_name(self):
@@ -53,6 +57,15 @@ class Event:
             if roomname == this_name:
                 return True
         return False
+
+    def is_content(self):
+        """Is this event an actual talk, or something meta"""
+        if self.data["kind"] not in ["talk", "tutorial"]:
+            return False
+
+    def is_cancelled(self):
+        """Is this event still going to happen?"""
+        return self.data.get("cancelled", False)
 
 
 class Schedule:
