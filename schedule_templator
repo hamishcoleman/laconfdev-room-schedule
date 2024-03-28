@@ -40,8 +40,15 @@ class Event:
             return f"{start} - {end}  CANCELLED: {name}"
         if self.is_break():
             return f"{start} - {end}  BREAK: {name}"
+        if self.is_changeover():
+            return f"{start} - {end}  Room Changeover"
 
-        return f"{start} - {end}  {name} ({speaker0})"
+        if speaker0 is None:
+            speaker = ""
+        else:
+            speaker = f"({speaker0})"
+
+        return f"{start} - {end}  {name} {speaker}"
 
     def author_name(self):
         """Return the first author's name, or None"""
@@ -75,6 +82,12 @@ class Event:
     def is_break(self):
         """Is this event an scheduled break, or something else"""
         if self.data["kind"] in ["morning tea", "lunch", "afternoon tea"]:
+            return True
+        return False
+
+    def is_changeover(self):
+        """Is this event one of the room change gaps?"""
+        if self.data["kind"] == "Room Changeover":
             return True
         return False
 
