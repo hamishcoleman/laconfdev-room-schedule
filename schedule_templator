@@ -18,7 +18,45 @@ def safename(s):
     return s
 
 
+class Event:
+    """Represent just one event from the conference"""
+    def __init__(self, data):
+        # quickly validate the data
+        for i in ["start", "end", "name"]:
+            if i not in data:
+                raise ValueError(f"Missing field {i}")
+        self.data = data
+
+    def __repr__(self):
+        return pprint.pformat(vars(self), indent=2)
+
+    def __str__(self):
+        start = self.data["start"]
+        end = self.data["end"]
+        name = self.data["name"]
+        speaker0 = self.author_name()
+        return f"{start} - {end}  {name} ({speaker0})"
+
+    def author_name(self):
+        """Return the first author's name, or None"""
+        if "authors" not in self.data:
+            return None
+        author = self.data["authors"][0]
+        return author.get("name", None)
+
+    def is_in_room(self, roomname):
+        """Check if this event is being held in the named room"""
+        if "rooms" not in self.data:
+            return False
+        for room in self.data["rooms"]:
+            this_name = safename(room)
+            if roomname == this_name:
+                return True
+        return False
+
+
 class Schedule:
+    """Represent an entire conference schedule"""
     def __init__(self, url):
         text = urllib.request.urlopen(url).read()
         data = json.loads(text)
@@ -42,18 +80,14 @@ class Schedule:
             rooms.add(safename(name))
         return rooms
 
-    def room(self, name):
+    def room_events(self, name):
         """Return only the events in the named room"""
         name = safename(name)
         events = []
         for event in self.data:
-            if "rooms" not in event:
-                continue
-            for room in event["rooms"]:
-                room_name = safename(room)
-                if name == room_name:
-                    events.append(event)
-                    continue
+            e = Event(event)
+            if e.is_in_room(name):
+                events.append(e)
         return events
 
 
@@ -70,8 +104,8 @@ def subp_rooms(args, schedule):
 
 def subp_room(args, schedule):
     """Show the events in the named room"""
-    events = schedule.room(args.roomname)
-    pprint.pp(events)
+    for event in schedule.room_events(args.roomname):
+        print(event)
 
 
 def subp_next(args, schedule):
