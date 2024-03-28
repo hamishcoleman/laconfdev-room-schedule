@@ -5,6 +5,7 @@
 import argparse
 import datetime
 import json
+import jinja2
 import pprint
 import urllib.request
 
@@ -264,6 +265,37 @@ def subp_now(args, schedule):
     print(event)
 
 
+def subp_tpl_rooms(args, schedule):
+    """Render the template for each of the rooms"""
+
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader("."),
+        extensions=["jinja2.ext.do", "jinja2.ext.loopcontrols"],
+    )
+
+    # TODO: the template loader doesnt work with relative paths
+    tpl = env.get_template(args.template)
+
+    rooms = schedule.rooms()
+    now = schedule.now(args.time)
+    next = schedule.next(args.time)
+
+    for room in rooms:
+        codename = safename(room)
+        db = {
+            "room": room,
+            "codename": codename,
+            "now": now,
+            "next": next,
+        }
+        result = tpl.render(db)
+
+        filename = f"{args.prefix}-{codename}{args.suffix}"
+        f = open(filename, "w")
+        f.write(result)
+        f.close()
+
+
 def argparser():
     args = argparse.ArgumentParser(description=__doc__)
     args.add_argument(
@@ -311,8 +343,20 @@ def argparser():
         help="The room name to search for",
     )
 
-    # TODO:
-    # - template a file using a matching event
+    tpl_rooms = subp.add_parser("tpl_rooms", help=subp_tpl_rooms.__doc__)
+    tpl_rooms.set_defaults(func=subp_tpl_rooms)
+    tpl_rooms.add_argument(
+        "template",
+        help="The Jinja template to use",
+    )
+    tpl_rooms.add_argument(
+        "prefix",
+        help="Output filename prefix",
+    )
+    tpl_rooms.add_argument(
+        "suffix",
+        help="Output filename suffix",
+    )
 
     r = args.parse_args()
     return r
