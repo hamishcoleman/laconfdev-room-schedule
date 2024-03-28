@@ -105,7 +105,10 @@ def subp_rooms(args, schedule):
 def subp_room(args, schedule):
     """Show the events in the named room"""
     for event in schedule.room_events(args.roomname):
-        print(event)
+        if args.raw:
+            pprint.pp(event)
+        else:
+            print(event)
 
 
 def subp_next(args, schedule):
@@ -143,16 +146,16 @@ def argparser():
         help="The conference.json url (could be a file: url)",
         default="https://2024.everythingopen.au/schedule/conference.json",
     )
+    args.add_argument(
+        "--raw",
+        help="Do not abbreviate or prettify output",
+        default=False,
+        action="store_true",
+    )
     subp = args.add_subparsers(help="Action", required=True)
 
     rooms = subp.add_parser("rooms", help=subp_rooms.__doc__)
     rooms.set_defaults(func=subp_rooms)
-    rooms.add_argument(
-        "--raw",
-        help="Show the raw name, instead of the safe/short/simple name",
-        default=False,
-        action="store_true",
-    )
 
     room = subp.add_parser("room", help=subp_room.__doc__)
     room.set_defaults(func=subp_room)
