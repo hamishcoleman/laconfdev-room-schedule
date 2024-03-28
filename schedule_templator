@@ -38,6 +38,8 @@ class Event:
 
         if self.is_cancelled():
             return f"{start} - {end}  CANCELLED: {name}"
+        if self.is_break():
+            return f"{start} - {end}  BREAK: {name}"
 
         return f"{start} - {end}  {name} ({speaker0})"
 
@@ -60,9 +62,21 @@ class Event:
 
     def is_content(self):
         """Is this event an actual talk, or something meta"""
-        if self.data["kind"] not in ["talk", "tutorial"]:
+        if self.data["kind"] not in ["talk", "tutorial", "other"]:
+            return False
+        if "Quiet Room" in self.data["name"]:
+            # Not a talk, but do want to show as scheduled content
+            return True
+        if "abstract" not in self.data:
+            # Almost certainly just an empty slot
             return False
         return True
+
+    def is_break(self):
+        """Is this event an scheduled break, or something else"""
+        if self.data["kind"] in ["morning tea", "lunch", "afternoon tea"]:
+            return True
+        return False
 
     def is_cancelled(self):
         """Is this event still going to happen?"""
@@ -100,6 +114,9 @@ class Schedule:
         events = []
         for event in self.data:
             e = Event(event)
+            if not e.is_content():
+                # Skip meta events
+                continue
             if e.is_in_room(name):
                 events.append(e)
         return events
