@@ -196,9 +196,14 @@ def subp_next(args, schedule):
         pprint.pp(events)
         return
 
-    # args.roomname
-    room = events.get(args.roomname, None)
-    print(room)
+    if args.roomname == "ALL":
+        for room in sorted(events.keys()):
+            print("Room", room)
+            print(events[room])
+        return
+
+    event = events.get(args.roomname, None)
+    print(event)
 
 
 def argparser():
