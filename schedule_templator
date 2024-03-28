@@ -130,10 +130,11 @@ def subp_rooms(args, schedule):
 
 def subp_room(args, schedule):
     """Show the events in the named room"""
-    for event in schedule.room_events(args.roomname):
-        if args.raw:
-            pprint.pp(event)
-        else:
+    events = schedule.room_events(args.roomname)
+    if args.raw:
+        pprint.pp(events)
+    else:
+        for event in events:
             print(event)
 
 
