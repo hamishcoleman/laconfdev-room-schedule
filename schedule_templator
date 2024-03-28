@@ -277,6 +277,11 @@ def argparser():
         default=False,
         action="store_true",
     )
+    args.add_argument(
+        "--time",
+        help="Force a time to be used as now (YYYY-MM-DDTHH:mm:SS)",
+        default=None,
+    )
     subp = args.add_subparsers(help="Action", required=True)
 
     kinds = subp.add_parser("kinds", help=subp_kinds.__doc__)
@@ -295,22 +300,12 @@ def argparser():
     next = subp.add_parser("next", help=subp_next.__doc__)
     next.set_defaults(func=subp_next)
     next.add_argument(
-        "--time",
-        help="Force a time to be used as now (YYYY-MM-DDTHH:mm:SS)",
-        default=None,
-    )
-    next.add_argument(
         "roomname",
         help="The room name to search for (or ALL)",
     )
 
     now = subp.add_parser("now", help=subp_now.__doc__)
     now.set_defaults(func=subp_now)
-    now.add_argument(
-        "--time",
-        help="Force a time to be used as now (YYYY-MM-DDTHH:mm:SS)",
-        default=None,
-    )
     now.add_argument(
         "roomname",
         help="The room name to search for",
