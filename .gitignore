@@ -1,0 +1,4 @@
+
+# generated during Coverage test
+.coverage
+__pycache__/
