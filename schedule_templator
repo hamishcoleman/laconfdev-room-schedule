@@ -389,13 +389,12 @@ def subp_now(args, schedule):
 def subp_tpl_rooms(args, schedule):
     """Render the template for each of the rooms"""
 
-    env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader("."),
-        extensions=["jinja2.ext.do", "jinja2.ext.loopcontrols"],
-    )
+    f = open(args.template)
+    tpl = jinja2.Template(f.read())
+    f.close()
 
-    # TODO: the template loader doesnt work with relative paths
-    tpl = env.get_template(args.template)
+    tpl.environment.add_extension("jinja2.ext.do")
+    tpl.environment.add_extension("jinja2.ext.loopcontrols")
 
     rooms = schedule.rooms()
     now = schedule.now(args.time)
