@@ -1,2 +1,6 @@
 # Fetch up to date json data hourly
 0 * * * * /home/hamish/r/laconfdev-room-schedule/cron-wget.sh
+
+# Generate the "on next" slide every 5 minutes
+TZ=Australia/Brisbane
+0/5 * * * * /home/hamish/r/laconfdev-room-schedule/schedule_templator tpl_rooms /home/hamish/r/laconfdev-room-schedule/template-next.html.j2 /home/hamish/static/next .html
