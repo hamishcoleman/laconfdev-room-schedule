@@ -1,0 +1,2 @@
+# Fetch up to date json data hourly
+0 * * * * /home/hamish/r/laconfdev-room-schedule/cron-wget.sh
