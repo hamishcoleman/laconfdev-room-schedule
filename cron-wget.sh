@@ -6,6 +6,8 @@
 URL=https://2024.everythingopen.au/schedule/conference.json
 FILE=~/static/conference.json
 
+mkdir -p $(dirname ${FILE})
+
 curl -f -s -o ${FILE}.tmp ${URL}
 S=$?
 
