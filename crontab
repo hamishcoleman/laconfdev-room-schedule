@@ -4,3 +4,4 @@
 # Generate the "on next" slide every 5 minutes
 TZ=Australia/Brisbane
 */5 * * * * cd /home/hamish/static/ ; /home/hamish/r/laconfdev-room-schedule/schedule_templator --json file:conference.json tpl_rooms /home/hamish/r/laconfdev-room-schedule/template-next.html.j2 next .html
+*/5 * * * * cd /home/hamish/static/ ; /home/hamish/r/laconfdev-room-schedule/schedule_templator --json file:conference.json tpl /home/hamish/r/laconfdev-room-schedule/template-nextall.html.j2 next-all.html
