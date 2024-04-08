@@ -386,15 +386,42 @@ def subp_now(args, schedule):
     print(event)
 
 
-def subp_tpl_rooms(args, schedule):
-    """Render the template for each of the rooms"""
+def get_jinja_template(filename):
+    """Load a template file into a context"""
 
-    f = open(args.template)
+    f = open(filename)
     tpl = jinja2.Template(f.read())
     f.close()
 
     tpl.environment.add_extension("jinja2.ext.do")
     tpl.environment.add_extension("jinja2.ext.loopcontrols")
+
+    return tpl
+
+
+def subp_tpl(args, schedule):
+    """Render the template into the output file"""
+
+    tpl = get_jinja_template(args.template)
+
+    now = schedule.now(args.time)
+    next = schedule.next(args.time)
+
+    db = {
+        "now": now,
+        "next": next,
+    }
+    result = tpl.render(db)
+
+    f = open(args.output, "w")
+    f.write(result)
+    f.close()
+
+
+def subp_tpl_rooms(args, schedule):
+    """Render the template for each of the rooms"""
+
+    tpl = get_jinja_template(args.template)
 
     rooms = schedule.rooms()
     now = schedule.now(args.time)
@@ -461,6 +488,17 @@ def argparser():
     now.add_argument(
         "roomname",
         help="The room name to search for",
+    )
+
+    tpl = subp.add_parser("tpl", help=subp_tpl.__doc__)
+    tpl.set_defaults(func=subp_tpl)
+    tpl.add_argument(
+        "template",
+        help="The Jinja template to use",
+    )
+    tpl.add_argument(
+        "output",
+        help="Output filename",
     )
 
     tpl_rooms = subp.add_parser("tpl_rooms", help=subp_tpl_rooms.__doc__)
