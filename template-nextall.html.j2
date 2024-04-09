@@ -13,7 +13,7 @@
   <link href="https://2024.everythingopen.au/static/build/scss/app.css" rel="stylesheet" type="text/css" />
   
   <script type="text/javascript">
-    var CONF_TZ = "Australia/Sydney";
+    var CONF_TZ = "Australia/Brisbane";
   </script>
 
 </head>
@@ -39,7 +39,7 @@
       <tr><th>When <th>Room <th>Name
 {%   for room in ['turtle', 'emu', 'echidna', 'pelican'] %}
       <tr>
-        <td><span class="presentation-time" data-starttime="{{ next[room].data["start"] }}">{{ next[room].data["start"] }}</span>
+        <td><span class="start-time" data-starttime="{{ next[room].data["start"] }}">{{ next[room].data["start"] }}</span>
         <td><p>{{ next[room].data["room"] }}</p>
         <td>
           <p>{{ next[room].data["name"] }} ({{ next[room].author_name() }})</p>
@@ -55,6 +55,30 @@
     
 <script src="https://2024.everythingopen.au/static/build/js/luxon.min.js"></script>
 <script src="https://2024.everythingopen.au/static/build/js/schedule.js" type="text/javascript"></script>
+
+<script>
+    function renderStartTimes() {
+        var presentationTimes = $('span.start-time');
+        for (var i = 0; i < presentationTimes.length; ++i) {
+            var presentationTime = $(presentationTimes[i]);
+            var startTime = presentationTime.data('starttime');
+            var confStartTime = luxon.DateTime.fromISO(startTime, { zone: CONF_TZ });
+
+            var confStartTimeFormatted = confStartTime.toLocaleString({
+                weekday: 'short',
+                month: 'short',
+                day: '2-digit',
+                hour: 'numeric',
+                minute: 'numeric',
+            });
+
+            presentationTime.html(confStartTimeFormatted);
+        }
+    }
+
+renderStartTimes()
+
+</script>
 
   </main>
 
