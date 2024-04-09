@@ -42,7 +42,7 @@
         <h3>{{ next[codename].data["name"] }}</h3>
         <p>presenter: {{ next[codename].author_name() }}</p>
         <p class="lead">
-        <span class="presentation-time" data-starttime="{{ next[codename].data["start"] }}" data-endtime="{{ next[codename].data["end"] }}">{{ next[codename].data["start"] }}&ndash;{{ next[codename].data["end"] }}</span>
+        <span class="time" data-time="{{ next[codename].data["start"] }}">{{ next[codename].data["start"] }}</span>&ndash;<span class="time" data-time="{{ next[codename].data["end"] }}">{{ next[codename].data["end"] }}</span>
 </p>
       </div>
     </div>
@@ -57,6 +57,30 @@
     
 <script src="https://2024.everythingopen.au/static/build/js/luxon.min.js"></script>
 <script src="https://2024.everythingopen.au/static/build/js/schedule.js" type="text/javascript"></script>
+
+<script>
+    function renderTimes() {
+        var span_times = $('span.time');
+        for (var i = 0; i < span_times.length; ++i) {
+            var span_time = $(span_times[i]);
+            var Time = span_time.data('time');
+            var confTime = luxon.DateTime.fromISO(Time, { zone: CONF_TZ });
+
+            var confTimeFormatted = confTime.toLocaleString({
+                weekday: 'short',
+                month: 'short',
+                day: '2-digit',
+                hour: 'numeric',
+                minute: 'numeric',
+            });
+
+            span_time.html(confTimeFormatted);
+        }
+    }
+
+renderTimes()
+
+</script>
 
   </main>
 
