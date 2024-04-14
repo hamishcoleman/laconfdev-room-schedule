@@ -35,6 +35,11 @@
   </header>
 
   <main role="main">
+    <table>
+        <tr>
+            <td width=10%>
+                &nbsp;
+            <td width=80%>
     <table border=1>
       <tr><th>When <th>Room <th>Name
 {%   for room in ['turtle', 'emu', 'echidna', 'pelican'] %}
@@ -44,6 +49,9 @@
         <td>
           <p>{{ next[room].data["name"] }} ({{ next[room].author_name() }})</p>
 {% endfor %}
+    </table>
+            <td width=10%>
+                &nbsp;
     </table>
     
     <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
