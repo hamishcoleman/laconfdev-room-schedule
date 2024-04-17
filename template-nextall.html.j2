@@ -44,10 +44,16 @@
       <tr><th>When <th>Room <th>Name
 {%   for room in ['turtle', 'emu', 'echidna', 'pelican'] %}
       <tr>
+{%    if room in now %}
         <td><span class="start-time" data-starttime="{{ next[room].data["start"] }}">{{ next[room].data["start"] }}</span>
         <td><p>{{ next[room].data["room"] }}</p>
         <td>
           <p>{{ next[room].data["name"] }} ({{ next[room].author_name() }})</p>
+{%    else %}
+        <td>
+        <td>{{ room }}
+        <td>nothing scheduled
+{%    endif %}
 {% endfor %}
     </table>
             <td width=10%>
